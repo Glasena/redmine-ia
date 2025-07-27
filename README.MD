@@ -56,8 +56,6 @@ Everything is **containerized** with Docker and orchestrated with **Docker Compo
 - **Portability:** `pg_dump` backup + auto‑restore on first boot for instant demo on any machine.
 - **Reliability:** Startup ordering & readiness logic so the API waits until Redmine is ready.
 
-**[print]** Add an architecture diagram here (containers + data flow).
-
 ---
 
 ## Features
@@ -156,9 +154,6 @@ Ask a natural‑language question grounded on your Redmine data.
   "answer": "The login route implementation (ID 3) is finished. However, there is a pending issue (ID 4) where the login button becomes unresponsive after an incorrect password attempt."
 }
 ```
-
-**[print]** Add a screenshot of a successful `/api/ask` call in Postman or curl.
-
 ---
 
 ## Debugging & Real‑World Lessons (What We Fixed)
@@ -178,8 +173,6 @@ Ask a natural‑language question grounded on your Redmine data.
 
 - **Race condition** during boot: API tried to index before Redmine was ready  
   Added `sleep` + `flask index` bootstrap step. Consider healthchecks for production.
-
-**[print]** Add logs screenshots showing before/after fixes.
 
 ---
 
