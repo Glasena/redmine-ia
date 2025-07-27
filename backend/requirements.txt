@@ -1,0 +1,7 @@
+flask # python API
+langchain
+langchain-google-genai # langchain-google integration library
+python-redmine #wrapper redmine api
+langchain-community
+chromadb # vector database for embeddings
+google-generativeai

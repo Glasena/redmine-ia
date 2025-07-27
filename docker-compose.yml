@@ -1,0 +1,86 @@
+version: '3.8'
+
+volumes:
+  postgres_data:
+  redmine_files:
+  redmine_plugins:
+  chroma_data:
+
+networks:
+  redmine_net:
+
+services:
+
+  redmine:
+    image: redmine:5.1
+    container_name: redmine_app
+    restart: always
+    depends_on:
+      - redmine_db
+    ports:
+      - "3000:3000"
+    environment:
+      - REDMINE_DB_POSTGRES=redmine_db
+      - REDMINE_DB_USERNAME=redmine
+      - REDMINE_DB_PASSWORD=password
+      - REDMINE_DB_DATABASE=redmine_production
+      - REDMINE_SECRET_KEY_BASE=${REDMINE_SECRET_KEY_BASE}
+    volumes:
+      - redmine_files:/usr/src/redmine/files
+      - redmine_plugins:/usr/src/redmine/plugins
+    networks:
+      - redmine_net
+
+  redmine_db:
+    image: postgres:13-alpine
+    container_name: redmine_db
+    restart: always
+    environment:
+      - POSTGRES_USER=redmine
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=redmine_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - redmine_net
+
+  chroma-db-server:
+    image: chromadb/chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/.chroma/
+    restart: unless-stopped
+    networks:
+      - redmine_net
+
+  gemini-rag-api:
+    build:
+      context: ./backend 
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - CHROMA_HOST=chroma-db-server
+      - REDMINE_URL=http://redmine:3000
+      - REDMINE_KEY=${REDMINE_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - FLASK_APP=run.py
+      - FLASK_RUN_HOST=0.0.0.0
+    restart: unless-stopped
+    depends_on:
+      - chroma-db-server
+      - redmine
+    networks:
+      - redmine_net
+    command: >
+      sh -c "
+        echo 'API container started. Waiting 15 seconds for other services...' &&
+        sleep 15 &&
+        echo 'Running initial data indexing...' &&
+        flask index &&
+        echo 'Indexing finished. Starting Flask server...' &&
+        flask run
+      "
