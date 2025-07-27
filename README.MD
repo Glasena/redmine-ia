@@ -209,10 +209,3 @@ Licensed under **MIT** (adjust as needed).
   "question": "Is there a task for implementing the login route? If it exists, what is its status and which task is it?"
 }
 ```
-
-### Reindex (after new issues)
-```json
-{
-  "force": true
-}
-```
